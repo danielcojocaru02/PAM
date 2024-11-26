@@ -1,75 +1,73 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'bloc/doctor_cubit.dart'; // Import the DoctorCubit
 
 class DoctorsContainer extends StatelessWidget {
   const DoctorsContainer({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        // Header for Categories with "See All" on the right
-        const SizedBox(
-          height: 70,
-          child: Row(
+    return BlocBuilder<DoctorCubit, DoctorState>(
+      builder: (context, state) {
+        if (state is DoctorLoading) {
+          return const Center(child: CircularProgressIndicator());
+        } else if (state is DoctorError) {
+          return Center(child: Text(state.message));
+        } else if (state is DoctorLoaded) {
+          final doctors = state.doctors;
+          return Column(
             children: [
-              Expanded(
-                child: Padding(
-                  padding: EdgeInsets.only(left: 16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        '532 founds',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              Padding(
-                padding: EdgeInsets.all(8),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  mainAxisAlignment: MainAxisAlignment.center,
+              const SizedBox(
+                height: 70,
+                child: Row(
                   children: [
-                    Text(
-                      'Default ',
-                      style: TextStyle(
-                        color: Colors.blue,
+                    Expanded(
+                      child: Padding(
+                        padding: EdgeInsets.only(left: 16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              'Doctors found',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ],
                 ),
               ),
+              // Horizontal List of Doctors
+              SizedBox(
+                height: 1000, // Fixed height for the card list
+                child: ListView.builder(
+                  scrollDirection: Axis.vertical,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  itemCount: doctors.length, // Number of doctors
+                  itemBuilder: (context, index) {
+                    final doctor = doctors[index];
+                    return buildDoctorCard(doctor);
+                  },
+                ),
+              ),
             ],
-          ),
-        ),
-        // Horizontal List of Doctors
-        SizedBox(
-          height: 1000, // Fixed height for the card list
-          child: ListView.builder(
-            scrollDirection: Axis.vertical, // Make the list vertical
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            itemCount: centers.length, // Number of centers
-            itemBuilder: (context, index) {
-              final center = centers[index];
-              return buildCenterCard(center);
-            },
-          ),
-        ),
-      ],
+          );
+        } else {
+          return const Center(child: Text('Something went wrong'));
+        }
+      },
     );
   }
-
   // Method to build each doctor's card
-  Widget buildCenterCard(Map<String, dynamic> center) {
+  Widget buildDoctorCard(doctor) {
     return Container(
-      width: double.infinity, // Make the card take full width
-      margin: const EdgeInsets.only(bottom: 16), // Margin between cards
+      width: double.infinity,
+      margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
         boxShadow: const [
@@ -94,19 +92,19 @@ class DoctorsContainer extends StatelessWidget {
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(16),
                 image: DecorationImage(
-                  image: AssetImage(center['image']),
+                  image: NetworkImage(doctor.image),
                   fit: BoxFit.cover,
                 ),
               ),
             ),
-            const SizedBox(width: 12), // Space between image and text
+            const SizedBox(width: 12),
             // Info section
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    center['name'],
+                    doctor.fullName,
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -114,7 +112,7 @@ class DoctorsContainer extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    center['location'],
+                    doctor.typeOfDoctor,
                     style: const TextStyle(
                       fontSize: 12,
                       color: Colors.grey,
@@ -126,7 +124,7 @@ class DoctorsContainer extends StatelessWidget {
                       const Icon(Icons.star, color: Colors.amber, size: 16),
                       const SizedBox(width: 4),
                       Text(
-                        '${center['rating']} (${center['reviews']} Reviews)',
+                        '${doctor.reviewRate} (${doctor.reviewsCount} Reviews)',
                         style: const TextStyle(
                           fontSize: 12,
                           color: Colors.grey,
@@ -135,20 +133,12 @@ class DoctorsContainer extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      const Icon(Icons.directions_walk, size: 16, color: Colors.grey),
-                      const SizedBox(width: 4),
-                      Text(
-                        '${center['distance']} km/${center['time']} min',
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey,
-                        ),
-                      ),
-                      const Spacer(),
-                      const Icon(Icons.local_hospital, size: 16, color: Colors.grey),
-                    ],
+                  Text(
+                    doctor.locationOfCenter,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey,
+                    ),
                   ),
                 ],
               ),
@@ -159,52 +149,3 @@ class DoctorsContainer extends StatelessWidget {
     );
   }
 }
-
-// Example data for medical centers
-final List<Map<String, dynamic>> centers = [
-  {
-    'name': 'Sunrise Health Clinic',
-    'location': '123 Oak Street, CA 98765',
-    'rating': 5.0,
-    'reviews': 58,
-    'distance': 2.5,
-    'time': 40,
-    'image': 'assets/img/doctors/Image-3.png',
-  },
-  {
-    'name': 'Golden Cardiology',
-    'location': '555 Bridge Street, CA 98765',
-    'rating': 4.9,
-    'reviews': 102,
-    'distance': 2.5,
-    'time': 40,
-    'image': 'assets/img/doctors/Image-4.png',
-  },
-  {
-    'name': 'Dr.Michael Jonson',
-    'location': 'Maple Associates, NY, USA',
-    'rating': 4.9,
-    'reviews': 102,
-    'distance': 2.5,
-    'time': 40,
-    'image': 'assets/img/doctors/Image-5.png',
-  },
-  {
-    'name': 'Dr.Emily Walker',
-    'location': 'Serenity Pediatrics Clinic',
-    'rating': 4.9,
-    'reviews': 102,
-    'distance': 2.5,
-    'time': 40,
-    'image': 'assets/img/doctors/Image-6.png',
-  },
-  {
-    'name': 'Dr.Emily Walker',
-    'location': 'Serenity Pediatrics Clinic',
-    'rating': 4.9,
-    'reviews': 102,
-    'distance': 2.5,
-    'time': 40,
-    'image': 'assets/img/doctors/Image-7.png',
-  },
-];

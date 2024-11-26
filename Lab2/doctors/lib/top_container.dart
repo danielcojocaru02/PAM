@@ -1,7 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'bloc/banner_cubit.dart'; // Import BannerCubit
 
-class TopContainer extends StatelessWidget {
+class TopContainer extends StatefulWidget {
   const TopContainer({super.key});
+
+  @override
+  _TopContainerState createState() => _TopContainerState();
+}
+
+class _TopContainerState extends State<TopContainer> {
+  @override
+  void initState() {
+    super.initState();
+    // Trigger the banner fetch as soon as the widget is created
+    context.read<BannerCubit>().fetchBannerFromJson();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -33,7 +47,7 @@ class TopContainer extends StatelessWidget {
                                 size: 24,
                               ),
                             ],
-                          )
+                          ),
                         ],
                       ),
                     ),
@@ -54,7 +68,7 @@ class TopContainer extends StatelessWidget {
                               color: const Color.fromARGB(255, 201, 201, 201),
                               width: 1,
                             ),
-                            borderRadius: BorderRadius.circular(30), // Rounded corners
+                            borderRadius: BorderRadius.circular(30),
                           ),
                           child: const Icon(
                             Icons.notifications,
@@ -74,14 +88,14 @@ class TopContainer extends StatelessWidget {
           child: Container(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(10),
-              color: const Color.fromARGB(255, 223, 223, 223), // Rounded corners
+              color: const Color.fromARGB(255, 223, 223, 223),
             ),
             padding: const EdgeInsets.all(8),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const Padding(
-                  padding: EdgeInsets.all(8.0), // Add padding around the icon
+                  padding: EdgeInsets.all(8.0),
                   child: Icon(
                     Icons.search,
                     size: 24,
@@ -90,8 +104,7 @@ class TopContainer extends StatelessWidget {
                 ),
                 Expanded(
                   child: Container(
-                                padding: const EdgeInsets.symmetric(vertical: 8.0), // Center text vertically
-
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
                     child: const Text(
                       "Search doctor...",
                       style: TextStyle(
@@ -103,13 +116,29 @@ class TopContainer extends StatelessWidget {
             ),
           ),
         ),
-        Container(
-                padding: const EdgeInsets.only(top: 10), // Set padding here
+        // Using BlocBuilder to listen for banner loading states
+        BlocBuilder<BannerCubit, BannerState>(
+          builder: (context, state) {
+            if (state is BannerLoading) {
+              return const Center(child: CircularProgressIndicator());
+            } else if (state is BannerError) {
+              return Center(child: Text(state.message));
+            } else if (state is BannerLoaded) {
+              return Container(
+                padding: const EdgeInsets.only(top: 10),
                 child: Image.asset(
-                  'assets/img/banner.png',
+                  state.imageUrl, // Display the image URL correctly
+                  fit: BoxFit.cover,
+                  height: 200, // Set a height for the banner
                 ),
-        )
+              );
+            } else {
+              return const SizedBox.shrink(); // Empty widget when no state is active
+            }
+          },
+        ),
       ],
     );
   }
 }
+

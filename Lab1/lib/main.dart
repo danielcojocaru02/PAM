@@ -108,12 +108,12 @@ class _LoanCalculatorScreenState extends State<LoanCalculatorScreen> {
               },
             ),
             // Slider with labels
-            Column(
+            const Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: const <Widget>[
+                  children: <Widget>[
                     Text('1'),
                     Text('60'),
                   ],
@@ -150,7 +150,7 @@ class _LoanCalculatorScreenState extends State<LoanCalculatorScreen> {
                   Container(
                     padding: const EdgeInsets.all(30.0),
                     decoration: BoxDecoration(
-                      color: Color.fromARGB(105, 223, 223, 223),
+                      color: const Color.fromARGB(105, 223, 223, 223),
                       borderRadius: BorderRadius.circular(
                           20.0), 
                     ),
